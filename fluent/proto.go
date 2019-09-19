@@ -3,6 +3,7 @@
 package fluent
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/tinylib/msgp/msgp"
@@ -93,8 +94,17 @@ func (t *EventTime) MarshalBinaryTo(b []byte) error {
 	return nil
 }
 
-// UnmarshalBinary is not implemented since decoding messages is not supported
-// by this library.
 func (t *EventTime) UnmarshalBinary(b []byte) error {
+	if len(b) != t.Len() {
+		return fmt.Errorf("Invalid EventTime byte length: %d", len(b))
+	}
+
+	sec := (int32(b[0]) << 24) | (int32(b[1]) << 16)
+	sec = sec | (int32(b[2]) << 8) | int32(b[3])
+
+	nsec := (int32(b[4]) << 24) | (int32(b[5]) << 16)
+	nsec = nsec | (int32(b[6]) << 8) | int32(b[7])
+
+	*t = EventTime(time.Unix(int64(sec), int64(nsec)))
 	return nil
 }
